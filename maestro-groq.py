@@ -7,9 +7,10 @@ import json
 
 # Set up the Groq API client
 from groq import Groq
-import os
+from tavily import TavilyClient
 
 client = Groq(api_key="YOUR API KEY")
+tavily_client = TavilyClient(api_key="YOUR TAVILY API KEY")
 
 # Define the models to use for each agent
 ORCHESTRATOR_MODEL = "mixtral-8x7b-32768"
@@ -33,7 +34,7 @@ def calculate_subagent_cost(model, input_tokens, output_tokens):
 
     return total_cost
 
-def opus_orchestrator(objective, file_content=None, previous_results=None):
+def opus_orchestrator(objective, file_content=None, previous_results=None, use_search=False):
     console.print(f"\n[bold]Calling Orchestrator for your objective[/bold]")
     previous_results_text = "\n".join(previous_results) if previous_results else "None"
     if file_content:
@@ -56,7 +57,7 @@ def opus_orchestrator(objective, file_content=None, previous_results=None):
     )
 
     response_text = opus_response.choices[0].message.content
-    console.print(Panel(response_text, title=f"[bold green]Groq Orchestrator[/bold green]", title_align="left", border_style="green", subtitle="Sending task to Subagent ð"))
+    console.print(Panel(response_text, title=f"[bold green]Groq Orchestrator[/bold green]", title_align="left", border_style="green", subtitle="Sending task to Subagent Ã°ÂÂÂ"))
     return response_text, file_content
 
 def haiku_sub_agent(prompt, previous_haiku_tasks=None, continuation=False):
@@ -86,7 +87,7 @@ def haiku_sub_agent(prompt, previous_haiku_tasks=None, continuation=False):
     )
 
     response_text = haiku_response.choices[0].message.content
-    console.print(Panel(response_text, title="[bold blue]Groq Sub-agent Result[/bold blue]", title_align="left", border_style="blue", subtitle="Task completed, sending result to Orchestrator ð"))
+    console.print(Panel(response_text, title="[bold blue]Groq Sub-agent Result[/bold blue]", title_align="left", border_style="blue", subtitle="Task completed, sending result to Orchestrator Ã°ÂÂÂ"))
     return response_text
 
 def opus_refine(objective, sub_task_results, filename, projectname, continuation=False):
@@ -98,7 +99,7 @@ def opus_refine(objective, sub_task_results, filename, projectname, continuation
         },
         {
             "role": "user",
-            "content": "Objective: " + objective + "\n\nSub-task results:\n" + "\n".join(sub_task_results) + "\n\nPlease review and refine the sub-task results into a cohesive final output. Add any missing information or details as needed. Make sure the code files are completed. When working on code projects, ONLY AND ONLY IF THE PROJECT IS CLEARLY A CODING ONE please provide the following:\n1. Project Name: Create a concise and appropriate project name that fits the project based on what it's creating. The project name should be no more than 20 characters long.\n2. Folder Structure: Provide the folder structure as a valid JSON object, where each key represents a folder or file, and nested keys represent subfolders. Use null values for files. Ensure the JSON is properly formatted without any syntax errors. Please make sure all keys are enclosed in double quotes, and ensure objects are correctly encapsulated with braces, separating items with commas as necessary.\nWrap the JSON object in <folder_structure> tags.\n3. Code Files: For each code file, include ONLY the file name in this format 'Filename: <filename>' NEVER EVER USE THE FILE PATH OR ANY OTHER FORMATTING YOU ONLY USE THE FOLLOWING format 'Filename: <filename>' followed by the code block enclosed in triple backticks, with the language identifier after the opening backticks, like this:\n\nâpython\n<code>\nâ"
+            "content": "Objective: " + objective + "\n\nSub-task results:\n" + "\n".join(sub_task_results) + "\n\nPlease review and refine the sub-task results into a cohesive final output. Add any missing information or details as needed. Make sure the code files are completed. When working on code projects, ONLY AND ONLY IF THE PROJECT IS CLEARLY A CODING ONE please provide the following:\n1. Project Name: Create a concise and appropriate project name that fits the project based on what it's creating. The project name should be no more than 20 characters long.\n2. Folder Structure: Provide the folder structure as a valid JSON object, where each key represents a folder or file, and nested keys represent subfolders. Use null values for files. Ensure the JSON is properly formatted without any syntax errors. Please make sure all keys are enclosed in double quotes, and ensure objects are correctly encapsulated with braces, separating items with commas as necessary.\nWrap the JSON object in <folder_structure> tags.\n3. Code Files: For each code file, include ONLY the file name in this format 'Filename: <filename>' NEVER EVER USE THE FILE PATH OR ANY OTHER FORMATTING YOU ONLY USE THE FOLLOWING format 'Filename: <filename>' followed by the code block enclosed in triple backticks, with the language identifier after the opening backticks, like this:\n\nÃ¢ÂÂpython\n<code>\nÃ¢ÂÂ"
         }
     ]
 
@@ -150,6 +151,10 @@ def read_file(file_path):
     with open(file_path, 'r') as file:
         content = file.read()
     return content
+
+def search_query(query):
+    response = tavily_client.search(query)
+    return response
 
 # Get the objective from user input
 objective = input("Please enter your objective with or without a text file path: ")
