@@ -57,7 +57,7 @@ def opus_orchestrator(objective, file_content=None, previous_results=None, use_s
     )
 
     response_text = opus_response.choices[0].message.content
-    console.print(Panel(response_text, title=f"[bold green]Groq Orchestrator[/bold green]", title_align="left", border_style="green", subtitle="Sending task to Subagent ÃÂÃÂÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ"))
+    console.print(Panel(response_text, title=f"[bold green]Groq Orchestrator[/bold green]", title_align="left", border_style="green", subtitle="Sending task to Subagent ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ"))
     return response_text, file_content
 
 def haiku_sub_agent(prompt, previous_haiku_tasks=None, continuation=False):
@@ -87,7 +87,7 @@ def haiku_sub_agent(prompt, previous_haiku_tasks=None, continuation=False):
     )
 
     response_text = haiku_response.choices[0].message.content
-    console.print(Panel(response_text, title="[bold blue]Groq Sub-agent Result[/bold blue]", title_align="left", border_style="blue", subtitle="Task completed, sending result to Orchestrator ÃÂÃÂÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ"))
+    console.print(Panel(response_text, title="[bold blue]Groq Sub-agent Result[/bold blue]", title_align="left", border_style="blue", subtitle="Task completed, sending result to Orchestrator ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ"))
     return response_text
 
 def opus_refine(objective, sub_task_results, filename, projectname, continuation=False):
@@ -99,7 +99,7 @@ def opus_refine(objective, sub_task_results, filename, projectname, continuation
         },
         {
             "role": "user",
-            "content": "Objective: " + objective + "\n\nSub-task results:\n" + "\n".join(sub_task_results) + "\n\nPlease review and refine the sub-task results into a cohesive final output. Add any missing information or details as needed. Make sure the code files are completed. When working on code projects, ONLY AND ONLY IF THE PROJECT IS CLEARLY A CODING ONE please provide the following:\n1. Project Name: Create a concise and appropriate project name that fits the project based on what it's creating. The project name should be no more than 20 characters long.\n2. Folder Structure: Provide the folder structure as a valid JSON object, where each key represents a folder or file, and nested keys represent subfolders. Use null values for files. Ensure the JSON is properly formatted without any syntax errors. Please make sure all keys are enclosed in double quotes, and ensure objects are correctly encapsulated with braces, separating items with commas as necessary.\nWrap the JSON object in <folder_structure> tags.\n3. Code Files: For each code file, include ONLY the file name in this format 'Filename: <filename>' NEVER EVER USE THE FILE PATH OR ANY OTHER FORMATTING YOU ONLY USE THE FOLLOWING format 'Filename: <filename>' followed by the code block enclosed in triple backticks, with the language identifier after the opening backticks, like this:\n\nÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂpython\n<code>\nÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ"
+            "content": "Objective: " + objective + "\n\nSub-task results:\n" + "\n".join(sub_task_results) + "\n\nPlease review and refine the sub-task results into a cohesive final output. Add any missing information or details as needed. Make sure the code files are completed. When working on code projects, ONLY AND ONLY IF THE PROJECT IS CLEARLY A CODING ONE please provide the following:\n1. Project Name: Create a concise and appropriate project name that fits the project based on what it's creating. The project name should be no more than 20 characters long.\n2. Folder Structure: Provide the folder structure as a valid JSON object, where each key represents a folder or file, and nested keys represent subfolders. Use null values for files. Ensure the JSON is properly formatted without any syntax errors. Please make sure all keys are enclosed in double quotes, and ensure objects are correctly encapsulated with braces, separating items with commas as necessary.\nWrap the JSON object in <folder_structure> tags.\n3. Code Files: For each code file, include ONLY the file name in this format 'Filename: <filename>' NEVER EVER USE THE FILE PATH OR ANY OTHER FORMATTING YOU ONLY USE THE FOLLOWING format 'Filename: <filename>' followed by the code block enclosed in triple backticks, with the language identifier after the opening backticks, like this:\n\nÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂpython\n<code>\nÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ"
         }
     ]
 
@@ -136,16 +136,12 @@ def create_folders_and_files(current_path, structure, code_blocks):
             except OSError as e:
                 console.print(Panel(f"Error creating folder: [bold]{path}[/bold]\nError: {e}", title="[bold red]Folder Creation Error[/bold red]", title_align="left", border_style="red"))
         else:
-            code_content = next((code for file, code in code_blocks if file == key), None)
-            if code_content:
-                try:
-                    with open(path, 'w') as file:
-                        file.write(code_content)
-                    console.print(Panel(f"Created file: [bold]{path}[/bold]", title="[bold green]File Creation[/bold green]", title_align="left", border_style="green"))
-                except IOError as e:
-                    console.print(Panel(f"Error creating file: [bold]{path}[/bold]\nError: {e}", title="[bold red]File Creation Error[/bold red]", title_align="left", border_style="red"))
-            else:
-                console.print(Panel(f"Code content not found for file: [bold]{key}[/bold]", title="[bold yellow]Missing Code Content[/bold yellow]", title_align="left", border_style="yellow"))
+            try:
+                with open(path, 'w') as file:
+                    file.write('')
+                console.print(Panel(f"Created file: [bold]{path}[/bold]", title="[bold green]File Creation[/bold green]", title_align="left", border_style="green"))
+            except IOError as e:
+                console.print(Panel(f"Error creating file: [bold]{path}[/bold]\nError: {e}", title="[bold red]File Creation Error[/bold red]", title_align="left", border_style="red"))
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
@@ -155,27 +151,6 @@ def read_file(file_path):
 def search_query(query):
     response = tavily_client.search(query)
     return response
-
-def main():
-    # Get the project name from user input
-    project_name = input("Please enter the name of your project: ")
-    project_directory = f"./{project_name}"
-    if os.path.exists(project_directory):
-        resume = input("Project directory exists. Do you want to resume the previous project? (yes/no): ")
-        if resume.lower() == 'yes':
-            refined_prompt = input("Please enter a refined prompt to update the project objective: ")
-            objective = refined_prompt
-            # Skip asking for a new objective since we are resuming with a refined prompt
-            main_logic(objective, project_directory)
-        else:
-            # Create directory and ask for new objective if not resuming
-            os.makedirs(project_directory, exist_ok=True)
-            objective = input("Please enter your objective: ")
-            main_logic(objective, project_directory)
-    else:
-        os.makedirs(project_directory, exist_ok=True)
-        objective = input("Please enter your objective: ")
-        main_logic(objective, project_directory)
 
 def main_logic(objective, project_directory):
     enable_search = input("Do you want to enable Tavily search? (yes/no): ")
@@ -274,5 +249,47 @@ def main_logic(objective, project_directory):
 
     print(f"\nFull exchange log saved to {filename}")
 
+def main():
+    workspace_directory = "./workspace"
+    os.makedirs(workspace_directory, exist_ok=True)
+
+    # Get the project name from user input
+    project_name = input("Please enter the name of your project: ")
+    project_directory = f"{workspace_directory}/{project_name}"
+    if os.path.exists(project_directory):
+        resume = input("Project directory exists. Do you want to resume the previous project? (yes/no): ")
+        if resume.lower() == 'yes':
+            refined_prompt = input("Please enter a refined prompt to update the project objective: ")
+            objective = refined_prompt  # Use the refined prompt as the objective
+            main_logic(objective, project_directory)
+        else:
+            # Create directory and ask for new objective if not resuming
+            os.makedirs(project_directory, exist_ok=True)
+            objective = input("Please enter your objective: ")
+            main_logic(objective, project_directory)
+    else:
+        os.makedirs(project_directory, exist_ok=True)
+        objective = input("Please enter your objective: ")
+        main_logic(objective, project_directory)
+
 if __name__ == "__main__":
     main()
+
+def read_write_test(file_path):
+    # Test write operation
+    try:
+        with open(file_path, 'w') as file:
+            file.write('Test')
+        console.print(Panel(f"Write operation successful: [bold]{file_path}[/bold]", title="[bold green]Write Test[/bold green]", title_align="left", border_style="green"))
+    except IOError as e:
+        console.print(Panel(f"Error writing to file: [bold]{file_path}[/bold]\nError: {e}", title="[bold red]Write Test Error[/bold red]", title_align="left", border_style="red"))
+        return
+
+    # Test read operation
+    try:
+        with open(file_path, 'r') as file:
+            content = file.read()
+        console.print(Panel(f"Read operation successful: [bold]{file_path}[/bold]", title="[bold green]Read Test[/bold green]", title_align="left", border_style="green"))
+    except IOError as e:
+        console.print(Panel(f"Error reading from file: [bold]{file_path}[/bold]\nError: {e}", title="[bold red]Read Test Error[/bold red]", title_align="left", border_style="red"))
+        return

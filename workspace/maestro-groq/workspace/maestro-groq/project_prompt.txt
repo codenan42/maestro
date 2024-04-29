@@ -1,0 +1,46 @@
+import os
+
+def main_logic(objective, project_directory):
+    # Main logic of the program
+    print(f"Objective: {objective}")
+    print(f"Project directory: {project_directory}")
+
+def main():
+    # Get the project name from user input
+    project_name = input("Please enter the name of your project: ")
+    project_directory = f"./workspace/{project_name}"  # Ensure directory is under workspace
+    if os.path.exists(project_directory):
+        resume = input("Project directory exists. Do you want to resume the previous project? (yes/no): ")
+        if resume.lower() == 'yes':
+            prompt_file_path = os.path.join(project_directory, "project_prompt.txt")
+            if os.path.exists(prompt_file_path):
+                with open(prompt_file_path, 'r') as file:
+                    last_prompt = file.read()
+                use_last_prompt = input(f"Found last prompt: {last_prompt}. Do you want to use this prompt again? (yes/no): ")
+                if use_last_prompt.lower() == 'yes':
+                    objective = last_prompt
+                else:
+                    objective = input("Please enter a new refined prompt for your project: ")
+                    with open(prompt_file_path, 'w') as file:
+                        file.write(objective)
+            else:
+                objective = input("No previous prompt found. Please enter a new refined prompt for your project: ")
+                with open(prompt_file_path, 'w') as file:
+                    file.write(objective)
+            main_logic(objective, project_directory)
+        else:
+            # Create directory and ask for new objective if not resuming
+            os.makedirs(project_directory, exist_ok=True)
+            objective = input("Please enter your objective: ")
+            with open(os.path.join(project_directory, "project_prompt.txt"), 'w') as file:
+                file.write(objective)
+            main_logic(objective, project_directory)
+    else:
+        os.makedirs(project_directory, exist_ok=True)
+        objective = input("Please enter your objective: ")
+        with open(os.path.join(project_directory, "project_prompt.txt"), 'w') as file:
+            file.write(objective)
+        main_logic(objective, project_directory)
+
+if __name__ == "__main__":
+    main()
