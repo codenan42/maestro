@@ -57,7 +57,7 @@ def opus_orchestrator(objective, file_content=None, previous_results=None, use_s
     )
 
     response_text = opus_response.choices[0].message.content
-    console.print(Panel(response_text, title=f"[bold green]Groq Orchestrator[/bold green]", title_align="left", border_style="green", subtitle="Sending task to Subagent ÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂ"))
+    console.print(Panel(response_text, title=f"[bold green]Groq Orchestrator[/bold green]", title_align="left", border_style="green", subtitle="Sending task to Subagent ÃÂÃÂÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ"))
     return response_text, file_content
 
 def haiku_sub_agent(prompt, previous_haiku_tasks=None, continuation=False):
@@ -87,7 +87,7 @@ def haiku_sub_agent(prompt, previous_haiku_tasks=None, continuation=False):
     )
 
     response_text = haiku_response.choices[0].message.content
-    console.print(Panel(response_text, title="[bold blue]Groq Sub-agent Result[/bold blue]", title_align="left", border_style="blue", subtitle="Task completed, sending result to Orchestrator ÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂ"))
+    console.print(Panel(response_text, title="[bold blue]Groq Sub-agent Result[/bold blue]", title_align="left", border_style="blue", subtitle="Task completed, sending result to Orchestrator ÃÂÃÂÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ"))
     return response_text
 
 def opus_refine(objective, sub_task_results, filename, projectname, continuation=False):
@@ -99,7 +99,7 @@ def opus_refine(objective, sub_task_results, filename, projectname, continuation
         },
         {
             "role": "user",
-            "content": "Objective: " + objective + "\n\nSub-task results:\n" + "\n".join(sub_task_results) + "\n\nPlease review and refine the sub-task results into a cohesive final output. Add any missing information or details as needed. Make sure the code files are completed. When working on code projects, ONLY AND ONLY IF THE PROJECT IS CLEARLY A CODING ONE please provide the following:\n1. Project Name: Create a concise and appropriate project name that fits the project based on what it's creating. The project name should be no more than 20 characters long.\n2. Folder Structure: Provide the folder structure as a valid JSON object, where each key represents a folder or file, and nested keys represent subfolders. Use null values for files. Ensure the JSON is properly formatted without any syntax errors. Please make sure all keys are enclosed in double quotes, and ensure objects are correctly encapsulated with braces, separating items with commas as necessary.\nWrap the JSON object in <folder_structure> tags.\n3. Code Files: For each code file, include ONLY the file name in this format 'Filename: <filename>' NEVER EVER USE THE FILE PATH OR ANY OTHER FORMATTING YOU ONLY USE THE FOLLOWING format 'Filename: <filename>' followed by the code block enclosed in triple backticks, with the language identifier after the opening backticks, like this:\n\nÃÂÃÂ¢ÃÂÃÂÃÂÃÂpython\n<code>\nÃÂÃÂ¢ÃÂÃÂÃÂÃÂ"
+            "content": "Objective: " + objective + "\n\nSub-task results:\n" + "\n".join(sub_task_results) + "\n\nPlease review and refine the sub-task results into a cohesive final output. Add any missing information or details as needed. Make sure the code files are completed. When working on code projects, ONLY AND ONLY IF THE PROJECT IS CLEARLY A CODING ONE please provide the following:\n1. Project Name: Create a concise and appropriate project name that fits the project based on what it's creating. The project name should be no more than 20 characters long.\n2. Folder Structure: Provide the folder structure as a valid JSON object, where each key represents a folder or file, and nested keys represent subfolders. Use null values for files. Ensure the JSON is properly formatted without any syntax errors. Please make sure all keys are enclosed in double quotes, and ensure objects are correctly encapsulated with braces, separating items with commas as necessary.\nWrap the JSON object in <folder_structure> tags.\n3. Code Files: For each code file, include ONLY the file name in this format 'Filename: <filename>' NEVER EVER USE THE FILE PATH OR ANY OTHER FORMATTING YOU ONLY USE THE FOLLOWING format 'Filename: <filename>' followed by the code block enclosed in triple backticks, with the language identifier after the opening backticks, like this:\n\nÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂpython\n<code>\nÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ"
         }
     ]
 
@@ -156,113 +156,123 @@ def search_query(query):
     response = tavily_client.search(query)
     return response
 
-# Get the project name from user input
-project_name = input("Please enter the name of your project: ")
-project_directory = f"./{project_name}"
-if os.path.exists(project_directory):
-    resume = input("Project directory exists. Do you want to resume the previous project? (yes/no): ")
-    if resume.lower() == 'yes':
-        refined_prompt = input("Please enter a refined prompt to update the project objective: ")
-        objective = refined_prompt
+def main():
+    # Get the project name from user input
+    project_name = input("Please enter the name of your project: ")
+    project_directory = f"./{project_name}"
+    if os.path.exists(project_directory):
+        resume = input("Project directory exists. Do you want to resume the previous project? (yes/no): ")
+        if resume.lower() == 'yes':
+            refined_prompt = input("Please enter a refined prompt to update the project objective: ")
+            objective = refined_prompt
+            # Skip asking for a new objective since we are resuming with a refined prompt
+            main_logic(objective, project_directory)
+        else:
+            # Create directory and ask for new objective if not resuming
+            os.makedirs(project_directory, exist_ok=True)
+            objective = input("Please enter your objective: ")
+            main_logic(objective, project_directory)
     else:
         os.makedirs(project_directory, exist_ok=True)
-else:
-    os.makedirs(project_directory, exist_ok=True)
+        objective = input("Please enter your objective: ")
+        main_logic(objective, project_directory)
 
-# Get the objective from user input
-objective = input("Please enter your objective: ")
-enable_search = input("Do you want to enable Tavily search? (yes/no): ")
-use_search = enable_search.lower() == 'yes'
+def main_logic(objective, project_directory):
+    enable_search = input("Do you want to enable Tavily search? (yes/no): ")
+    use_search = enable_search.lower() == 'yes'
 
-task_exchanges = []
-haiku_tasks = []
-loop_counter = 0  # Initialize loop counter for preventing infinite loops
+    task_exchanges = []
+    haiku_tasks = []
+    loop_counter = 0  # Initialize loop counter for preventing infinite loops
 
-file_content = None  # Initialize file_content at the beginning of the script
+    file_content = None  # Initialize file_content at the beginning of the script
 
-while True:
-    loop_counter += 1  # Increment loop counter
-    if loop_counter > 5:
-        break  # Break the loop after 5 iterations to prevent infinite loop
+    while True:
+        loop_counter += 1  # Increment loop counter
+        if loop_counter > 5:
+            break  # Break the loop after 5 iterations to prevent infinite loop
 
-    # Call Orchestrator to break down the objective into the next sub-task or provide the final output
-    previous_results = [result for _, result in task_exchanges]
-    if not task_exchanges:
-        # Pass the file content only in the first iteration if available
-        opus_result, file_content_for_haiku = opus_orchestrator(objective, file_content, previous_results, use_search)
-    else:
-        opus_result, _ = opus_orchestrator(objective, previous_results=previous_results, use_search=use_search)
+        # Call Orchestrator to break down the objective into the next sub-task or provide the final output
+        previous_results = [result for _, result in task_exchanges]
+        if not task_exchanges:
+            # Pass the file content only in the first iteration if available
+            opus_result, file_content_for_haiku = opus_orchestrator(objective, file_content, previous_results, use_search)
+        else:
+            opus_result, _ = opus_orchestrator(objective, previous_results=previous_results, use_search=use_search)
 
-    if "The task is complete:" in opus_result:
-        # If Opus indicates the task is complete, exit the loop
-        final_output = opus_result.replace("The task is complete:", "").strip()
-        break
-    else:
-        sub_task_prompt = opus_result
-        # Append file content to the prompt for the initial call to haiku_sub_agent, if applicable
-        if file_content_for_haiku and not haiku_tasks:
-            sub_task_prompt = f"{sub_task_prompt}\n\nFile content:\n{file_content_for_haiku}"
-        # Call haiku_sub_agent with the prepared prompt and record the result
-        sub_task_result = haiku_sub_agent(sub_task_prompt, haiku_tasks)
-        # Log the task and its result for future reference
-        haiku_tasks.append({"task": sub_task_prompt, "result": sub_task_result})
-        # Record the exchange for processing and output generation
-        task_exchanges.append((sub_task_prompt, sub_task_result))
-        # Prevent file content from being included in future haiku_sub_agent calls
-        file_content_for_haiku = None
+        if "The task is complete:" in opus_result:
+            # If Opus indicates the task is complete, exit the loop
+            final_output = opus_result.replace("The task is complete:", "").strip()
+            break
+        else:
+            sub_task_prompt = opus_result
+            # Append file content to the prompt for the initial call to haiku_sub_agent, if applicable
+            if file_content_for_haiku and not haiku_tasks:
+                sub_task_prompt = f"{sub_task_prompt}\n\nFile content:\n{file_content_for_haiku}"
+            # Call haiku_sub_agent with the prepared prompt and record the result
+            sub_task_result = haiku_sub_agent(sub_task_prompt, haiku_tasks)
+            # Log the task and its result for future reference
+            haiku_tasks.append({"task": sub_task_prompt, "result": sub_task_result})
+            # Record the exchange for processing and output generation
+            task_exchanges.append((sub_task_prompt, sub_task_result))
+            # Prevent file content from being included in future haiku_sub_agent calls
+            file_content_for_haiku = None
 
-# Create the .md filename
-sanitized_objective = re.sub(r'\W+', '_', objective)
-timestamp = datetime.now().strftime("%H-%M-%S")
+    # Create the .md filename
+    sanitized_objective = re.sub(r'\W+', '_', objective)
+    timestamp = datetime.now().strftime("%H-%M-%S")
 
-# Call Opus to review and refine the sub-task results
-refined_output = opus_refine(objective, [result for _, result in task_exchanges], timestamp, sanitized_objective)
+    # Call Opus to review and refine the sub-task results
+    refined_output = opus_refine(objective, [result for _, result in task_exchanges], timestamp, sanitized_objective)
 
-# Extract the project name from the refined output
-project_name_match = re.search(r'Project Name: (.*)', refined_output)
-project_name = project_name_match.group(1).strip() if project_name_match else sanitized_objective
+    # Extract the project name from the refined output
+    project_name_match = re.search(r'Project Name: (.*)', refined_output)
+    project_name = project_name_match.group(1).strip() if project_name_match else sanitized_objective
 
-# Extract the folder structure from the refined output
-folder_structure_match = re.search(r'<folder_structure>(.*?)</folder_structure>', refined_output, re.DOTALL)
-folder_structure = {}
-if folder_structure_match:
-    json_string = folder_structure_match.group(1).strip()
+    # Extract the folder structure from the refined output
+    folder_structure_match = re.search(r'<folder_structure>(.*?)</folder_structure>', refined_output, re.DOTALL)
+    folder_structure = {}
+    if folder_structure_match:
+        json_string = folder_structure_match.group(1).strip()
+        try:
+            folder_structure = json.loads(json_string)
+        except json.JSONDecodeError as e:
+            console.print(Panel(f"Error parsing JSON: {e}", title="[bold red]JSON Parsing Error[/bold red]", title_align="left", border_style="red"))
+            console.print(Panel(f"Invalid JSON string: [bold]{json_string}[/bold]", title="[bold red]Invalid JSON String[/bold red]", title_align="left", border_style="red"))
+
+    # Extract code files from the refined output
+    code_blocks = re.findall(r'Filename: (\S+)\s*```[\w]*\n(.*?)\n```', refined_output, re.DOTALL)
+
+    # Create the folder structure and code files
+    create_folder_structure(project_directory, folder_structure, code_blocks)
+
+    # Truncate the sanitized_objective to a maximum of 50 characters
+    max_length = 25
+    truncated_objective = sanitized_objective[:max_length] if len(sanitized_objective) > max_length else sanitized_objective
+
+    # Update the filename to include the project name
+    filename = f"{timestamp}_{truncated_objective}.md"
+
+    # Prepare the full exchange log
+    exchange_log = f"Objective: {objective}\n\n"
+    exchange_log += "=" * 40 + " Task Breakdown " + "=" * 40 + "\n\n"
+    for i, (prompt, result) in enumerate(task_exchanges, start=1):
+        exchange_log += f"Task {i}:\n"
+        exchange_log += f"Prompt: {prompt}\n"
+        exchange_log += f"Result: {result}\n\n"
+
+    exchange_log += "=" * 40 + " Refined Final Output " + "=" * 40 + "\n\n"
+    exchange_log += refined_output
+
+    console.print(f"\n[bold]Refined Final output:[/bold]\n{refined_output}")
+
     try:
-        folder_structure = json.loads(json_string)
-    except json.JSONDecodeError as e:
-        console.print(Panel(f"Error parsing JSON: {e}", title="[bold red]JSON Parsing Error[/bold red]", title_align="left", border_style="red"))
-        console.print(Panel(f"Invalid JSON string: [bold]{json_string}[/bold]", title="[bold red]Invalid JSON String[/bold red]", title_align="left", border_style="red"))
+        with open(filename, 'w') as file:
+            file.write(exchange_log)
+    except IOError as e:
+        print(f"Error writing to file {filename}: {e}")
 
-# Extract code files from the refined output
-code_blocks = re.findall(r'Filename: (\S+)\s*```[\w]*\n(.*?)\n```', refined_output, re.DOTALL)
+    print(f"\nFull exchange log saved to {filename}")
 
-# Create the folder structure and code files
-create_folder_structure(project_directory, folder_structure, code_blocks)
-
-# Truncate the sanitized_objective to a maximum of 50 characters
-max_length = 25
-truncated_objective = sanitized_objective[:max_length] if len(sanitized_objective) > max_length else sanitized_objective
-
-# Update the filename to include the project name
-filename = f"{timestamp}_{truncated_objective}.md"
-
-# Prepare the full exchange log
-exchange_log = f"Objective: {objective}\n\n"
-exchange_log += "=" * 40 + " Task Breakdown " + "=" * 40 + "\n\n"
-for i, (prompt, result) in enumerate(task_exchanges, start=1):
-    exchange_log += f"Task {i}:\n"
-    exchange_log += f"Prompt: {prompt}\n"
-    exchange_log += f"Result: {result}\n\n"
-
-exchange_log += "=" * 40 + " Refined Final Output " + "=" * 40 + "\n\n"
-exchange_log += refined_output
-
-console.print(f"\n[bold]Refined Final output:[/bold]\n{refined_output}")
-
-try:
-    with open(filename, 'w') as file:
-        file.write(exchange_log)
-except IOError as e:
-    print(f"Error writing to file {filename}: {e}")
-
-print(f"\nFull exchange log saved to {filename}")
+if __name__ == "__main__":
+    main()
