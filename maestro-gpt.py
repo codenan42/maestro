@@ -1,17 +1,19 @@
 import os
-from anthropic import Anthropic
-from openai import OpenAI
 import re
 from rich.console import Console
 from rich.panel import Panel
 from datetime import datetime
 import json
+from config import ANTHROPIC_API_KEY, OPENAI_API_KEY
+from utils import read_file, create_folder_structure, create_folders_and_files
+from anthropic import Anthropic
+from openai import OpenAI
 
 # Set up the Anthropic API client
-anthropic_client = Anthropic(api_key="YOUR ANTHROPIC API KEY")
+anthropic_client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 # Set up the OpenAI API client
-openai_client = OpenAI(api_key="YOUR OPENAI API KEY")
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Set the Claude model to use for the sub-agent
 claude_model = "claude-3-opus-20240229"
@@ -19,7 +21,18 @@ claude_model = "claude-3-opus-20240229"
 # Initialize the Rich Console
 console = Console()
 
-def opus_orchestrator(objective, file_content=None, previous_results=None):
+def opus_orchestrator(objective: str, file_content: str = None, previous_results: list = None) -> tuple:
+    """
+    Calls the Orchestrator to break down the objective into sub-tasks.
+
+    Args:
+        objective (str): The main objective to be broken down.
+        file_content (str, optional): Content of the file if provided. Defaults to None.
+        previous_results (list, optional): Results of previous sub-tasks. Defaults to None.
+
+    Returns:
+        tuple: Response text from the orchestrator and file content.
+    """
     console.print(f"\n[bold]Calling Orchestrator for your objective[/bold]")
     previous_results_text = "\n".join(previous_results) if previous_results else "None"
     if file_content:
@@ -50,7 +63,17 @@ def opus_orchestrator(objective, file_content=None, previous_results=None):
     console.print(Panel(response_text, title=f"[bold green]{orchestrator_model} Orchestrator[/bold green]", title_align="left", border_style="green", subtitle="Sending task to subagent 👇"))
     return response_text, file_content
 
-def subagent(prompt, previous_subagent_tasks=None):
+def subagent(prompt: str, previous_subagent_tasks: list = None) -> str:
+    """
+    Calls the subagent to execute the given prompt.
+
+    Args:
+        prompt (str): The prompt for the subagent to execute.
+        previous_subagent_tasks (list, optional): Previous tasks executed by the subagent. Defaults to None.
+
+    Returns:
+        str: Response text from the subagent.
+    """
     if previous_subagent_tasks is None:
         previous_subagent_tasks = []
 
@@ -76,8 +99,20 @@ def subagent(prompt, previous_subagent_tasks=None):
     console.print(Panel(response_text, title="[bold blue]Subagent Result[/bold blue]", title_align="left", border_style="blue", subtitle="Task completed, sending result to Maestro 👇"))
     return response_text
 
-def opus_refine(objective, sub_task_results, filename, projectname):
-    print("\nCalling Opus to provide the refined final output for your objective:")
+def opus_refine(objective: str, sub_task_results: list, filename: str, projectname: str) -> str:
+    """
+    Calls the Orchestrator to refine the sub-task results into a cohesive final output.
+
+    Args:
+        objective (str): The main objective.
+        sub_task_results (list): Results of the sub-tasks.
+        filename (str): Name of the file.
+        projectname (str): Name of the project.
+
+    Returns:
+        str: Refined final output.
+    """
+    print("\nCalling Orchestrator to provide the refined final output for your objective:")
     messages = [
         {
             "role": "user",
@@ -97,45 +132,6 @@ def opus_refine(objective, sub_task_results, filename, projectname):
     console.print(Panel(response_text, title="[bold green]Final Output[/bold green]", title_align="left", border_style="green"))
     return response_text
 
-def create_folder_structure(project_name, folder_structure, code_blocks):
-    # Create the project folder
-    try:
-        os.makedirs(project_name, exist_ok=True)
-        console.print(Panel(f"Created project folder: [bold]{project_name}[/bold]", title="[bold green]Project Folder[/bold green]", title_align="left", border_style="green"))
-    except OSError as e:
-        console.print(Panel(f"Error creating project folder: [bold]{project_name}[/bold]\nError: {e}", title="[bold red]Project Folder Creation Error[/bold red]", title_align="left", border_style="red"))
-        return
-
-    # Recursively create the folder structure and files
-    create_folders_and_files(project_name, folder_structure, code_blocks)
-
-def create_folders_and_files(current_path, structure, code_blocks):
-    for key, value in structure.items():
-        path = os.path.join(current_path, key)
-        if isinstance(value, dict):
-            try:
-                os.makedirs(path, exist_ok=True)
-                console.print(Panel(f"Created folder: [bold]{path}[/bold]", title="[bold blue]Folder Creation[/bold blue]", title_align="left", border_style="blue"))
-                create_folders_and_files(path, value, code_blocks)
-            except OSError as e:
-                console.print(Panel(f"Error creating folder: [bold]{path}[/bold]\nError: {e}", title="[bold red]Folder Creation Error[/bold red]", title_align="left", border_style="red"))
-        else:
-            code_content = next((code for file, code in code_blocks if file == key), None)
-            if code_content:
-                try:
-                    with open(path, 'w') as file:
-                        file.write(code_content)
-                    console.print(Panel(f"Created file: [bold]{path}[/bold]", title="[bold green]File Creation[/bold green]", title_align="left", border_style="green"))
-                except IOError as e:
-                    console.print(Panel(f"Error creating file: [bold]{path}[/bold]\nError: {e}", title="[bold red]File Creation Error[/bold red]", title_align="left", border_style="red"))
-            else:
-                console.print(Panel(f"Code content not found for file: [bold]{key}[/bold]", title="[bold yellow]Missing Code Content[/bold yellow]", title_align="left", border_style="yellow"))
-
-def read_file(file_path):
-    with open(file_path, 'r') as file:
-        content = file.read()
-    return content
-
 # Ask the user for the orchestrator model choice
 orchestrator_model = input("Please choose the orchestrator model (Claude Opus or GPT-4): ")
 while orchestrator_model not in ["Claude Opus", "GPT-4"]:
@@ -149,8 +145,7 @@ if "./" in objective or "/" in objective:
     # Extract the file path from the objective
     file_path = re.findall(r'[./\w]+\.[\w]+', objective)[0]
     # Read the file content
-    with open(file_path, 'r') as file:
-        file_content = file.read()
+    file_content = read_file(file_path)
     # Update the objective string to remove the file path
     objective = objective.split(file_path)[0].strip()
 else:
@@ -187,7 +182,7 @@ while True:
 sanitized_objective = re.sub(r'\W+', '_', objective)
 timestamp = datetime.now().strftime("%H-%M-%S")
 
-# Call Opus to review and refine the sub-task results
+# Call Orchestrator to review and refine the sub-task results
 refined_output = opus_refine(objective, [result for _, result in task_exchanges], timestamp, sanitized_objective)
 
 # Extract the project name from the refined output

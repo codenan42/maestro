@@ -1,11 +1,10 @@
 # Maestro - A Framework for Claude Opus, GPT and local LLMs to Orchestrate Subagents
 
-
 This Python script demonstrates an AI-assisted task breakdown and execution workflow using the Anthropic API. It utilizes two AI models, Opus and Haiku, to break down an objective into sub-tasks, execute each sub-task, and refine the results into a cohesive final output.
 
 ## New
 
-Mestro now runs locally thanks to the Ollama platform. Experience the power of Llama 3 locally! 
+Maestro now runs locally thanks to the Ollama platform. Experience the power of Llama 3 locally!
 
 Before running the script
 
@@ -17,7 +16,7 @@ then
 ```bash
 pip install ollama
 ```
-And 
+And
 
 ```bash
 ollama.pull('llama3:70b')
@@ -46,7 +45,6 @@ Then
 python maestro-groq.py
 ```
 
-
 - SEARCH 🔍
 
 Now, when it's creating a task for its subagent, Claude Opus will perform a search and get the best answer to help the subagent solve that task even better.
@@ -65,7 +63,6 @@ python maestro-gpt.py
 
 After you complete your installs.
 
-
 ## Features
 
 - Breaks down an objective into manageable sub-tasks using the Opus model
@@ -83,7 +80,7 @@ To run this script, you need to have the following:
 
 - Python installed
 - Anthropic API key
-- Required Python packages: `anthropic` and `rich`
+- Required Python packages: `anthropic`, `rich`, `tavily-python`, `ollama`, `groq`, `python-dotenv`
 
 ## Installation
 
